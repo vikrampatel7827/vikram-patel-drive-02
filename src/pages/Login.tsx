@@ -7,7 +7,6 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const login = useAuthStore((state) => state.login); // Assuming your store has a login/setToken action
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -15,7 +14,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // 1. Send office credentials to your secure Vercel backend route
+      // Sends your username and password to your secure Vercel backend proxy
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -25,14 +24,12 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Invalid credentials');
+        throw new Error(data.error || 'Invalid username or password');
       }
 
-      // 2. Save the temporary Google Access Token and unlock the app
-      // (Adjust this line depending on how your useAuthStore is written)
+      // Success! Saves the token and logs you straight into the drive
       useAuthStore.setState({ user: { accessToken: data.accessToken } });
-      
-      toast.success('Successfully logged into Private Drive!');
+      toast.success('Logged in successfully!');
       navigate('/');
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
@@ -44,9 +41,11 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <h2 className="text-2xl font-bold text-white mb-2 text-center">Office Drive Portal</h2>
-        <p className="text-slate-400 text-sm mb-6 text-center">Enter your secure credentials to bypass restrictions.</p>
-        
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-white mb-1">Vikram Patel Drive</h2>
+          <p className="text-slate-400 text-sm">Enter your office credentials to access your files</p>
+        </div>
+
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1">Username</label>
@@ -55,10 +54,11 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-500"
-              placeholder="Enter username"
+              placeholder="Enter your username"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm"
             />
           </div>
+
           <div>
             <label className="block text-xs font-medium text-slate-400 mb-1">Password</label>
             <input
@@ -66,18 +66,25 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-500"
-              placeholder="Enter password"
+              placeholder="Enter your password"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-brand-500 text-sm"
             />
           </div>
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-600 hover:bg-brand-500 text-white font-medium py-3 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-3 rounded-lg transition-colors cursor-pointer disabled:opacity-50 text-sm mt-2"
           >
-            {loading ? 'Authenticating...' : 'Access Private Drive'}
+            {loading ? 'Authenticating...' : 'Login to Drive'}
           </button>
         </form>
+
+        <div className="mt-6 text-center">
+          <span className="text-xs text-emerald-400 bg-emerald-950/50 border border-emerald-900/50 px-3 py-1.5 rounded-full">
+            Secure Office Firewall Bypass Active
+          </span>
+        </div>
       </div>
     </div>
   );
