@@ -1,18 +1,15 @@
 export default async function handler(req, res) {
-  // 1. Only allow POST requests for security
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { username, password } = req.body;
 
-  // 2. Verify against the credentials you saved in Vercel
   if (
     username === process.env.MY_APP_USERNAME &&
     password === process.env.MY_APP_PASSWORD
   ) {
     try {
-      // 3. If credentials match, securely ask Google for a temporary Access Token
       const googleResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: {
@@ -29,24 +26,19 @@ export default async function handler(req, res) {
       const data = await googleResponse.json();
 
       if (!googleResponse.ok) {
-        return res.status(googleResponse.status).json({ 
-          error: 'Failed to fetch Google token', 
-          details: data 
-        });
+        // This will send Google's exact reason (like "invalid_grant" or "unauthorized_client") to your frontend toast
+        return res.status(400).json({ error: data.error_description || data.error || 'Failed to fetch Google token' });
       }
 
-      // 4. Send ONLY the temporary token back to your frontend
       return res.status(200).json({ 
         success: true, 
         accessToken: data.access_token 
       });
 
     } catch (error) {
-      console.error("Token exchange error:", error);
-      return res.status(500).json({ error: 'Internal server error' });
+      return res.status(500).json({ error: error.message });
     }
   } else {
-    // Stop anyone who types the wrong office password
-    return res.status(401).json({ error: 'Invalid office credentials' });
+    return res.status(401).json({ error: 'Invalid username or password' });
   }
 }
