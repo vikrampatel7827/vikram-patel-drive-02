@@ -21,7 +21,10 @@ const getFileIcon = (mimeType: string) => {
 };
 
 export default function Drive() {
-  const { accessToken } = useAuthStore();
+  // FIXED: Pull 'user' from the store first, then extract 'accessToken'
+  const { user } = useAuthStore();
+  const accessToken = user?.accessToken;
+  
   const [files, setFiles] = useState<any[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
