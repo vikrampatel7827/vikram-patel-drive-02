@@ -9,12 +9,12 @@ interface VideoPlayerModalProps {
 }
 
 export default function VideoPlayerModal({ file, accessToken, onClose }: VideoPlayerModalProps) {
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   if (!file) return null;
 
-  // Direct zero-delay Google Drive streaming preview URL
-  const embedUrl = `https://drive.google.com/file/d/${file.id}/preview`;
+  // Direct raw media stream URL that bypasses Google's transcoding delay
+  const directStreamUrl = `https://www.googleapis.com/drive/v3/files/${file.id}?alt=media&access_token=${accessToken}`;
 
   return (
     <AnimatePresence>
@@ -34,7 +34,7 @@ export default function VideoPlayerModal({ file, accessToken, onClose }: VideoPl
               <div>
                 <h3 className="text-white font-bold text-base truncate">{file.name}</h3>
                 <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Zero-Buffer CDN Stream with Quality & Speed Controls
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Direct Raw CDN Stream Active
                 </p>
               </div>
             </div>
@@ -48,22 +48,25 @@ export default function VideoPlayerModal({ file, accessToken, onClose }: VideoPl
 
           {/* Video Player Container */}
           <div className="relative bg-black aspect-video flex items-center justify-center overflow-hidden">
-            {!iframeLoaded && (
+            {!isVideoLoaded && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-10 gap-3">
                 <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
                 <p className="text-sm font-semibold text-slate-400 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-brand-400 animate-pulse" /> Initializing instant cinematic stream...
+                  <Sparkles className="w-4 h-4 text-brand-400 animate-pulse" /> Loading direct movie stream...
                 </p>
               </div>
             )}
             
-            <iframe
-              src={embedUrl}
-              title={file.name}
-              className="w-full h-full border-0 relative z-20"
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-              allowFullScreen
-              onLoad={() => setIframeLoaded(true)}
+            <video
+              src={directStreamUrl}
+              controls
+              autoPlay
+              className="w-full h-full relative z-20 object-contain"
+              onLoadedData={() => setIsVideoLoaded(true)}
+              onError={() => {
+                setIsVideoLoaded(true);
+                alert("Failed to stream video directly. Try downloading or check token validity.");
+              }}
             />
           </div>
         </motion.div>
