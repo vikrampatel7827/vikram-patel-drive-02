@@ -35,7 +35,12 @@ export default function Drive() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadFiles = async () => {
-    if (!accessToken) return;
+    // FIXED LOGIC: Stop loading spinner even if the access token is missing
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const data = await fetchDriveFiles(accessToken);
       setFiles(data || []);
@@ -86,9 +91,9 @@ export default function Drive() {
     if (mime.includes('video')) {
       setSelectedVideo(file);
     } else if (mime.includes('image')) {
-      setSelectedImage(file); // Opens secure in-app image lightbox (No Google Drive redirect!)
+      setSelectedImage(file); 
     } else if (mime.includes('audio')) {
-      setSelectedAudio(file); // Opens floating music player dock!
+      setSelectedAudio(file); 
     } else {
       window.open(file.webViewLink, '_blank');
     }
@@ -123,7 +128,6 @@ export default function Drive() {
     <div {...getRootProps()} className="h-full flex flex-col relative outline-none p-8 text-slate-100 bg-slate-950 overflow-y-auto">
       <input {...getInputProps()} />
       
-      {/* Hidden file input triggered by the sidebar "+ New" button */}
       <input 
         type="file" 
         ref={fileInputRef} 
@@ -132,7 +136,6 @@ export default function Drive() {
         multiple 
       />
 
-      {/* In-App Media Modals & Players (Bypasses office network redirects) */}
       <VideoPlayerModal 
         file={selectedVideo} 
         accessToken={accessToken} 
@@ -149,7 +152,6 @@ export default function Drive() {
         onClose={() => setSelectedAudio(null)} 
       />
 
-      {/* Cinematic Drag & Drop Overlay */}
       <AnimatePresence>
         {isDragActive && (
           <motion.div
@@ -163,7 +165,6 @@ export default function Drive() {
         )}
       </AnimatePresence>
 
-      {/* Top Bar Header */}
       <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/80">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
@@ -219,7 +220,6 @@ export default function Drive() {
                   </div>
                 )}
                 
-                {/* 3-Dot Action Menu Button */}
                 <div className="absolute top-4 right-4 z-30">
                   <button 
                     onClick={(e) => {
@@ -231,7 +231,6 @@ export default function Drive() {
                     <MoreVertical className="w-4 h-4" />
                   </button>
 
-                  {/* Dropdown Menu */}
                   <AnimatePresence>
                     {isMenuOpen && (
                       <motion.div 
@@ -288,7 +287,6 @@ export default function Drive() {
         </div>
       )}
 
-      {/* Floating Upload Progress Queue */}
       <AnimatePresence>
         {Object.keys(uploadingFiles).length > 0 && (
           <motion.div
