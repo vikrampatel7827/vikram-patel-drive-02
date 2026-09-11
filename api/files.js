@@ -1,16 +1,16 @@
 export default async function handler(req, res) {
-  const { token } = req.query;
+  const authHeader = req.headers.authorization || `Bearer ${req.query.token}`;
 
-  if (!token) {
-    return res.status(400).json({ error: 'Missing token' });
+  if (!authHeader || authHeader === 'Bearer undefined') {
+    return res.status(401).json({ error: 'Missing or invalid token' });
   }
 
   try {
     const googleResponse = await fetch(
-      'https://www.googleapis.com/drive/v3/files?pageSize=50&fields=files(id,name,mimeType,size,thumbnailLink,webViewLink,webContentLink)',
+      "https://www.googleapis.com/drive/v3/files?q='root' in parents and trashed=false&fields=files(id,name,mimeType,size,thumbnailLink,webContentLink,webViewLink)&orderBy=folder,modifiedTime desc",
       {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: authHeader,
         },
       }
     );
