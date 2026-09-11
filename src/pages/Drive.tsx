@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../store/useAuthStore';
 import { fetchDriveFiles, uploadToGoogleDrive } from '../lib/gdrive';
 import { formatBytes } from '../lib/utils';
-import { Film, FileText, Image as ImageIcon, Music, Archive, MoreVertical, UploadCloud, Cloud, Play, Download, Trash, Eye, Plus, Sparkles } from 'lucide-react';
+import { Film, FileText, Image as ImageIcon, Music, Archive, MoreVertical, UploadCloud, Cloud, Play, Download, Trash, Eye, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import VideoPlayerModal from '../components/VideoPlayerModal';
 import ImagePreviewModal from '../components/ImagePreviewModal';
@@ -21,7 +21,6 @@ const getFileIcon = (mimeType: string) => {
 };
 
 export default function Drive() {
-  // FIXED: Pull 'user' from the store first, then extract 'accessToken'
   const { user } = useAuthStore();
   const accessToken = user?.accessToken;
   
@@ -29,7 +28,6 @@ export default function Drive() {
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   
-  // Modal States for in-app media rendering
   const [selectedVideo, setSelectedVideo] = useState<any | null>(null);
   const [selectedImage, setSelectedImage] = useState<any | null>(null);
   const [selectedAudio, setSelectedAudio] = useState<any | null>(null);
@@ -38,24 +36,17 @@ export default function Drive() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadFiles = async () => {
-    console.log("🟡 1. loadFiles triggered. Token is:", accessToken ? "Present" : "Missing");
-    
     if (!accessToken) {
-      console.log("🔴 2. No token found! Stopping spinner immediately.");
       setLoading(false);
       return;
     }
     
     try {
-      console.log("🔵 3. Token found. Attempting to fetch files from Google...");
-      const data = await fetchDriveFiles(accessToken);
-      console.log("🟢 4. Files fetched successfully!", data);
+      const data = await fetchDriveFiles(accessToken as string);
       setFiles(data || []);
     } catch (error) {
-      console.error("❌ 5. Fetch failed:", error);
       toast.error('Failed to sync cloud files');
     } finally {
-      console.log("🏁 6. Finally block reached. Stopping spinner.");
       setLoading(false);
     }
   };
@@ -145,19 +136,20 @@ export default function Drive() {
         multiple 
       />
 
+      {/* Fallback empty string applied here to fix the 3 TypeScript errors */}
       <VideoPlayerModal 
         file={selectedVideo} 
-        accessToken={accessToken} 
+        accessToken={accessToken || ''} 
         onClose={() => setSelectedVideo(null)} 
       />
       <ImagePreviewModal 
         file={selectedImage} 
-        accessToken={accessToken} 
+        accessToken={accessToken || ''} 
         onClose={() => setSelectedImage(null)} 
       />
       <MusicPlayerBar 
         file={selectedAudio} 
-        accessToken={accessToken} 
+        accessToken={accessToken || ''} 
         onClose={() => setSelectedAudio(null)} 
       />
 
