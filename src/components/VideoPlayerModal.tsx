@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Play, Loader2, Sparkles, ShieldCheck, ExternalLink } from 'lucide-react';
+import { X, Play, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 
 interface VideoPlayerModalProps {
   file: { name: string; id: string; webViewLink?: string } | null;
@@ -9,12 +9,12 @@ interface VideoPlayerModalProps {
 }
 
 export default function VideoPlayerModal({ file, accessToken, onClose }: VideoPlayerModalProps) {
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
-  if (!file) return null;
+  if (!file || !accessToken) return null;
 
-  // Google Drive secure preview embed URL
-  const embedUrl = `https://drive.google.com/file/d/${file.id}/preview`;
+  // Route the video through your own Vercel backend proxy to bypass office firewalls
+  const proxyStreamUrl = `/api/stream?fileId=${file.id}&token=${accessToken}`;
 
   return (
     <AnimatePresence>
@@ -34,48 +34,39 @@ export default function VideoPlayerModal({ file, accessToken, onClose }: VideoPl
               <div>
                 <h3 className="text-white font-bold text-base truncate">{file.name}</h3>
                 <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Secure Cloud Player Active
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Firewall-Bypassed Vercel Proxy Stream Active
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {file.webViewLink && (
-                <a
-                  href={file.webViewLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white px-3 py-2 rounded-xl transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" /> Open in Google Drive
-                </a>
-              )}
-              <button
-                onClick={onClose}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Video Player Container */}
           <div className="relative bg-black aspect-video flex items-center justify-center overflow-hidden">
-            {!iframeLoaded && (
+            {!isVideoLoaded && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 z-10 gap-3">
                 <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
                 <p className="text-sm font-semibold text-slate-400 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-brand-400 animate-pulse" /> Connecting to secure video stream...
+                  <Sparkles className="w-4 h-4 text-brand-400 animate-pulse" /> Piping secure stream through Vercel...
                 </p>
               </div>
             )}
             
-            <iframe
-              src={embedUrl}
-              title={file.name}
-              className="w-full h-full border-0 relative z-20"
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-              allowFullScreen
-              onLoad={() => setIframeLoaded(true)}
+            <video
+              src={proxyStreamUrl}
+              controls
+              autoPlay
+              className="w-full h-full relative z-20 object-contain"
+              onLoadedData={() => setIsVideoLoaded(true)}
+              onError={() => {
+                setIsVideoLoaded(true);
+                alert("Failed to load stream via proxy. Check console logs.");
+              }}
             />
           </div>
         </motion.div>

@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// Fetch files from Google Drive
+// Fetch files from Google Drive via Vercel Serverless Proxy to bypass office firewall
 export async function fetchDriveFiles(accessToken: string) {
-  const res = await axios.get(
-    "https://www.googleapis.com/drive/v3/files?q='root' in parents and trashed=false&fields=files(id,name,mimeType,size,thumbnailLink,webContentLink,webViewLink)&orderBy=folder,modifiedTime desc",
-    { headers: { Authorization: `Bearer ${accessToken}` } }
-  );
+  const res = await axios.get(`/api/files`, {
+    params: { token: accessToken }
+  });
   return res.data.files;
 }
 
