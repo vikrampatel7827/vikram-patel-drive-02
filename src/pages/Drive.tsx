@@ -35,18 +35,24 @@ export default function Drive() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadFiles = async () => {
-    // FIXED LOGIC: Stop loading spinner even if the access token is missing
+    console.log("🟡 1. loadFiles triggered. Token is:", accessToken ? "Present" : "Missing");
+    
     if (!accessToken) {
+      console.log("🔴 2. No token found! Stopping spinner immediately.");
       setLoading(false);
       return;
     }
     
     try {
+      console.log("🔵 3. Token found. Attempting to fetch files from Google...");
       const data = await fetchDriveFiles(accessToken);
+      console.log("🟢 4. Files fetched successfully!", data);
       setFiles(data || []);
     } catch (error) {
+      console.error("❌ 5. Fetch failed:", error);
       toast.error('Failed to sync cloud files');
     } finally {
+      console.log("🏁 6. Finally block reached. Stopping spinner.");
       setLoading(false);
     }
   };
